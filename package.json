@@ -1,6 +1,10 @@
 {
+  "type": "module",
   "dependencies": {
+    "jira-client": "^8.2.2",
+    "jira.js": "^2.15.16",
     "knex": "^2.3.0",
+    "node-fetch": "^3.3.0",
     "pg": "^8.8.0"
   }
 }
