@@ -125,8 +125,7 @@ function hasSprintData(issue) {
 }
 
 function transformSprintData(issue, output) {
-  for (let s in issue.fields.customfield_10020) {
-    let jiraSprint = issue.fields.customfield_10020[s];
+  for (let jiraSprint of issue.fields.customfield_10020) {
     let sprint = newIssueToSprint(issue, jiraSprint);
     output.issueToSprints.push(sprint);
   }
@@ -184,10 +183,8 @@ function transformIssueToEpic(issue, epicIdToName, output) {
 }
 
 function transformHistoryData(issue, output) {
-  for (let h in issue.changelog.histories) {
-    let jiraHistory = issue.changelog.histories[h];
-    for (let i in jiraHistory.items) {
-      let jiraItem = jiraHistory.items[i];
+  for (let jiraHistory of issue.changelog.histories) {
+    for (let jiraItem of jiraHistory.items) {
 
       if (jiraItem.toString == 'Done' || jiraItem.toString == 'In Progress') {
         //console.log("Changelog (" + issue.key + ") " + (jiraItem.fromString || '') + " -> " + (jiraItem.toString || ''))
@@ -209,8 +206,7 @@ function transformHistoryData(issue, output) {
 
 function transformSubtasksRelationship(issue, output) {
   let subTasks = issue.fields.subtasks;
-  for (let s in subTasks) {
-    let jiraSubTask = subTasks[s];
+  for (let jiraSubTask of subTasks) {
     let storyToTask = {
       'story_id': parseInt(issue.id),
       'task_id': parseInt(jiraSubTask.id)
@@ -221,8 +217,7 @@ function transformSubtasksRelationship(issue, output) {
 }
 
 function transformClonedStoriesData(issue, output) {
-  for (let i in issue.fields.issuelinks) {
-    let issueLink = issue.fields.issuelinks[i];
+  for (let issueLink of issue.fields.issuelinks) {
     if (issueLink.outwardIssue) {
       //console.log("Clone " + issue.key + " from " + issueLink.outwardIssue.key)
       let clonedStory = {
@@ -299,8 +294,8 @@ function transform(issues) {
 
   let epicIdToName = buildEpicIdToName(issues);
 
-  for (let i=0; i<issues.length; i++) {
-    transformIssue(issues[i], epicIdToName, tuples)
+  for (let issue of  issues) {
+    transformIssue(issue, epicIdToName, tuples)
   }
 
   tuples.clonedStories = buildCloningHistory(tuples.clonedStories);  
@@ -356,8 +351,7 @@ function buildCloningHistory(clonedStories) {
 
 function buildEpicIdToName(issues){
   let epicIdToName = new Map();
-  for (let i = 0; i < issues.length; i++) {
-    let issue = issues[i];
+  for (let issue of issues) {
     if (issue.fields.issuetype.name == 'Epic') {
       if (issue.fields.customfield_10011) {
         epicIdToName.set(parseInt(issue.id), issue.fields.customfield_10011);
