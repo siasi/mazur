@@ -1,8 +1,27 @@
 import { Version3Client } from 'jira.js';
-// file system module to perform file operations
 import * as fs from 'fs';
 
-async function extract(config) {
+export async function listProjects(config) {
+  const client = new Version3Client({
+    host: config.JIRA_SERVER,
+    authentication: {
+      basic: {
+        email: config.JIRA_USER,
+        apiToken: config.JIRA_APIKEY,
+      },
+    },
+    newErrorHandling: true,
+  })
+
+  const projects = await client.projects.getAllProjects()
+
+  if (projects.length) {
+     console.log("Got " + projects.length + " projects:")
+     projects.forEach((project) => console.log(project.name))
+  }
+}
+
+export async function extract(config) {
   const client = new Version3Client({
       host: config.JIRA_SERVER,
       authentication: {
@@ -36,11 +55,11 @@ async function extract(config) {
   return results;
 }
 
-function saveToFile(results) {
+function saveToFile(filename, results) {
   // stringify JSON Object
   var textContent = JSON.stringify(results, null, 2); 
   
-  fs.writeFile("output.json", textContent, 'utf8', function (err) {
+  fs.writeFile(filename, textContent, 'utf8', function (err) {
       if (err) {
           console.log("An error occured while writing JSON Object to File.");
           return console.log(err);
@@ -54,7 +73,7 @@ function readFromFile(path) {
   return JSON.parse(fs.readFileSync(path, {encoding:'utf8', flag:'r'})) 
 }
 
-function transform(issue, output) {
+function transformIssue(issue, output) {
 
   console.log(issue.fields.issuetype.name + " " + issue.key)
   if (issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug') {
@@ -213,49 +232,47 @@ function transform(issue, output) {
   }         
 }
 
-//saveToFile(results)
+function transform(issues) {
+  var tuples = {
+    stories : [],
+    tasks : [],
+    clonedStories : [],
+    storiesTasks : [],
+    historyItems :[],
+    epics : [],
+    sprints : []
+  }
+  
+  for (let i=0; i<issues.length; i++) {
+    transformIssue(issues[i], tuples)
+  }
+  
+  console.log("Found " + tuples.tasks.length + " Tasks/Bugs")
+  console.log("Found " + tuples.stories.length + " Stories")
+  console.log("Found " + tuples.clonedStories.length + " cloned Stories")
+  console.log("Found " + tuples.storiesTasks.length + " Subtasks")
+  console.log("Found " + tuples.historyItems.length + " History items")
+  console.log("Found " + tuples.epics.length + " Epic items")
+  console.log("Found " + tuples.sprints.length + " Sprint items")
 
-
-//var data = readFromFile('output.json')
-//console.log("There are " + data.length + " Jira items");
+  return tuples;
+}
 
 var config = JSON.parse(fs.readFileSync("config.json"))
 console.log(config)
-//var res = await extract(config)
-var res = readFromFile("output.json")
-console.log(res.length)
-console.log(res[2])
+var fileName = config.project + ".json"
+// 1. List Projects
+//listProjects(config)
 
-var tuples = {
-  stories : [],
-  tasks : [],
-  clonedStories : [],
-  storiesTasks : [],
-  historyItems :[],
-  epics : [],
-  sprints : []
-}
+// 2.1 Extract issues from Jira
+//var issues = await extract(config)
 
-for (let i=0; i<res.length; i++) {
-  transform(res[i], tuples)
-}
+// 2.2 Save Jira issues to file
+//saveToFile(fileName, issues)
 
-console.log("Found " + tuples.tasks.length + " Tasks/Bugs")
-console.log("Found " + tuples.stories.length + " Stories")
-console.log("Found " + tuples.clonedStories.length + " cloned Stories")
-console.log("Found " + tuples.storiesTasks.length + " Subtasks")
-console.log("Found " + tuples.historyItems.length + " History items")
-console.log("Found " + tuples.epics.length + " Epic items")
-console.log("Found " + tuples.sprints.length + " Sprint items")
-/*
-const row = { 
-  epic_id : issue.id,
-  key : issue.key,
-  parent_id : 19016,
-  parent_key : '???',
-  parent_summary : '???',
-  parent_issue_type : 'Epic',
-  id_epic : 19016,
-  issue_key : '???',
-  epic_name : '???'
-}*/
+// 2.3 Read Jira issues from file
+var issues = readFromFile(fileName)
+
+// 3. Transform
+var tuples = transform(issues)
+
