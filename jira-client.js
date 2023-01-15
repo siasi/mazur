@@ -42,17 +42,22 @@ while (true) {
 
 console.log("TOTAL = " + results.length)
 
-// stringify JSON Object
-var textContent = JSON.stringify(results, null, 2); 
- 
-fs.writeFile("output.json", textContent, 'utf8', function (err) {
-    if (err) {
-        console.log("An error occured while writing JSON Object to File.");
-        return console.log(err);
-    }
- 
-    console.log("JSON file has been saved.");
-});
+function saveToFile(results) {
+  // stringify JSON Object
+  var textContent = JSON.stringify(results, null, 2); 
+  
+  fs.writeFile("output.json", textContent, 'utf8', function (err) {
+      if (err) {
+          console.log("An error occured while writing JSON Object to File.");
+          return console.log(err);
+      }
+  
+      console.log("JSON file has been saved.");
+  });
+}
+
+saveToFile(results)
+
 /*
 const row = { 
   epic_id : issue.id,
