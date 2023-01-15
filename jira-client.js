@@ -165,16 +165,16 @@ function transformIssueToEpic(issue, epicIdToName, output) {
   
   if (issue.fields.parent) {
     var parent = issue.fields.parent
-    console.log("Epic found " + JSON.stringify(parent, null, 2))
-    if (parent.issuetype.name == "Epic") {
+    console.log("Epic found: " + JSON.stringify(parent, null, 2))
+    if (parent.fields.issuetype.name == "Epic") {
       
       var parentId = parseInt(parent.id)
       var issueToEpic = {
-        id : parseInt(issue.id),
-        key : issue.key,
-        parent_id : parentId,
-        parent_key : parent.key,
-        parent_summary : parent.fields.summary,
+        issue_id : parseInt(issue.id),
+        issue_key : issue.key,
+        epic_id : parentId,
+        epic_key : parent.key,
+        epic_summary : parent.fields.summary,
         epic_name : epicIdToName.get(parentId)
       }
 
@@ -374,3 +374,4 @@ saveRows(tuples.storyTasks, 'story_tasks', "story_id");
 saveRows(tuples.historyItems, 'history_items', "issue_id");
 //STORIES CLONE TO BE DONE
 saveRows(tuples.sprints, 'sprints', "issue_id");
+saveRows(tuples.issueToEpic, 'epics', "issue_id");

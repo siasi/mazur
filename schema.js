@@ -13,16 +13,12 @@ const db = knex({
 db.schema
   .dropTableIfExists('epics')
   .createTable('epics', function (table) {
-    table.string('epic_id')
-    table.string('key').notNullable()
-    table.integer('parent_id').notNullable()
-    table.string('parent_key').notNullable()
-    table.string('parent_summary')
-    table.string('parent_issue_type')
-    table.integer('id_epic')
-    table.string('issue_key')
+    table.string('issue_id').notNullable()
+    table.string('issue_key').notNullable()
+    table.integer('epic_id').notNullable()
+    table.string('epic_key').notNullable()
     table.string('epic_name')
-    table.timestamps(true, true)
+    table.string('epic_summary')
   })
   .then(() => console.log("Table epics created"))
 
