@@ -128,7 +128,7 @@ function transformSprintData(issue, output) {
   for (let s in issue.fields.customfield_10020) {
     var jiraSprint = issue.fields.customfield_10020[s];
     var sprint = newIssueToSprint(issue, jiraSprint);
-    output.sprints.push(sprint);
+    output.issueToSprints.push(sprint);
   }
 }
 
@@ -138,25 +138,25 @@ function newIssueToSprint(issue, jiraSprint) {
     'issue_type': issue.fields.issuetype.name,
     'issue_key': issue.key,
     'issue_project': "CE",
-    'issue_sprint_id': parseInt(jiraSprint.id),
-    'issue_sprint_name': jiraSprint.name,
-    'issue_sprint_state': jiraSprint.state
+    'sprint_id': parseInt(jiraSprint.id),
+    'sprint_name': jiraSprint.name,
+    'sprint_state': jiraSprint.state
   };
 
   if (jiraSprint.goal) {
-    issueToSprint.issue_sprint_goal = jiraSprint.goal;
+    issueToSprint.sprint_goal = jiraSprint.goal;
   }
 
   if (jiraSprint.startDate) {
-    issueToSprint.issue_sprint_startDate = Date.parse(jiraSprint.startDate);
+    issueToSprint.sprint_startDate = Date.parse(jiraSprint.startDate);
   }
 
   if (jiraSprint.endDate) {
-    issueToSprint.issue_sprint_endDate = Date.parse(issueToSprint.endDate);
+    issueToSprint.sprint_endDate = Date.parse(issueToSprint.endDate);
   }
 
   if (jiraSprint.completeDate) {
-    issueToSprint.issue_sprint_completeDate = Date.parse(issueToSprint.completeDate);
+    issueToSprint.sprint_completeDate = Date.parse(issueToSprint.completeDate);
   }
   return issueToSprint;
 }
@@ -165,7 +165,7 @@ function transformIssueToEpic(issue, epicIdToName, output) {
   
   if (issue.fields.parent) {
     var parent = issue.fields.parent
-    console.log("Epic found: " + JSON.stringify(parent, null, 2))
+    //console.log("Epic found: " + JSON.stringify(parent, null, 2))
     if (parent.fields.issuetype.name == "Epic") {
       
       var parentId = parseInt(parent.id)
@@ -211,12 +211,12 @@ function transformSubtasksRelationship(issue, output) {
   var subTasks = issue.fields.subtasks;
   for (let s in subTasks) {
     var jiraSubTask = subTasks[s];
-    var subTask = {
+    var storyToTask = {
       'story_id': parseInt(issue.id),
       'task_id': parseInt(jiraSubTask.id)
     };
 
-    output.storyTasks.push(subTask);
+    output.storyToTasks.push(storyToTask);
   }
 }
 
@@ -290,11 +290,11 @@ function transform(issues) {
   var tuples = {
     stories : [],
     tasks : [],
-    clonedStories : [],
-    storyTasks : [],
     historyItems :[],
+    clonedStories : [],
+    storyToTasks : [],
     issueToEpic : [],
-    sprints : []
+    issueToSprints : []
   }
 
   var epicIdToName = buildEpicIdToName(issues);
@@ -306,10 +306,10 @@ function transform(issues) {
   console.log("Created " + tuples.tasks.length + " Tasks/Bugs")
   console.log("Created " + tuples.stories.length + " Stories")
   console.log("Created " + tuples.clonedStories.length + " cloned Stories")
-  console.log("Created " + tuples.storyTasks.length + " Subtasks")
+  console.log("Created " + tuples.storyToTasks.length + " Subtasks")
   console.log("Created " + tuples.historyItems.length + " History items")
   console.log("Created " + tuples.issueToEpic.length + " Issue to Epic items")
-  console.log("Created " + tuples.sprints.length + " Sprint items")
+  console.log("Created " + tuples.issueToSprints.length + " Sprint items")
 
   return tuples;
 }
@@ -370,8 +370,8 @@ function saveRows(rows, tableName, returningField='id') {
 
 saveRows(tuples.stories, 'stories');
 saveRows(tuples.tasks, 'tasks');
-saveRows(tuples.storyTasks, 'story_tasks', "story_id");
+saveRows(tuples.storyToTasks, 'story_tasks', "story_id");
 saveRows(tuples.historyItems, 'history_items', "issue_id");
 //STORIES CLONE TO BE DONE
-saveRows(tuples.sprints, 'sprints', "issue_id");
-saveRows(tuples.issueToEpic, 'epics', "issue_id");
+saveRows(tuples.issueToSprints, 'issue_sprints', "issue_id");
+saveRows(tuples.issueToEpic, 'issue_epic', "issue_id");
