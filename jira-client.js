@@ -289,8 +289,12 @@ const db = knex({
   }
 });
 
-const chunkSize = 1000;
-db.batchInsert('stories', tuples.stories, chunkSize)
+function saveRows(rows, tableName) {
+  const chunkSize = 1000;
+  db.batchInsert(tableName, rows, chunkSize)
   .returning('id')
-  .then(function(ids) { console.log('Saved ' + ids.length + ' rows in STORIES Table') })
+  .then(function(ids) { console.log('Saved ' + ids.length + ' rows in ' + tableName + ' Table') })
   .catch(function(error) { console.log(error) });
+}
+
+saveRows(tuples.stories, 'stories');
