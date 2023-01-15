@@ -126,42 +126,59 @@ function transform(issue, output) {
         }
       }
     }
-  
-    /* Management of Story -> Subtasks relationship */
-    var subTasks = issue.fields.subtasks
-    for (let s in subTasks) {
-      var jiraSubTask = subTasks[s]
-      var subTask = {
-        'story_id' : parseInt(issue.id),
-        'task_id' : parseInt(jiraSubTask.id)
-      }
+  } 
+  else if (issue.fields.issuetype.name == 'Epic') {
+    console.log("Epic " + issue.key)
+
+    var epic = {
+      'id_epic' : parseInt(issue.id),
+      'issue_key' : issue.key
+    }
+
+    if (issue.fields.customfield_10011) {
+      epic.epic_name = issue.fields.customfield_10011
+    }
+    
+    console.log(epic)
+    output.epics.push(epic);
+  }
+
+  /* Management of Story -> Subtasks relationship */
+  var subTasks = issue.fields.subtasks
+  for (let s in subTasks) {
+    var jiraSubTask = subTasks[s]
+    var subTask = {
+      'story_id' : parseInt(issue.id),
+      'task_id' : parseInt(jiraSubTask.id)
+    }
+    
+    output.storiesTasks.push(subTask)
+  }
+
+  /* Management of History */
+  for (let h in issue.changelog.histories) {
+    var jiraHistory = issue.changelog.histories[h];
+    for (let i in jiraHistory.items) {
+      var jiraItem = jiraHistory.items[i]
       
-      output.storiesTasks.push(subTask)
-    }
-
-    /* Management of History */
-    for (let h in issue.changelog.histories) {
-      var jiraHistory = issue.changelog.histories[h];
-      for (let i in jiraHistory.items) {
-        var jiraItem = jiraHistory.items[i]
-        console.log(jiraItem)
-        if (jiraItem.toString == 'Done' || jiraItem.toString == 'In Progress') {
-          console.log("Changelog (" + issue.key + ") " + (jiraItem.fromString || '') + " -> " + (jiraItem.toString || ''))
-          var history = {
-            'issue_id' : parseInt(issue.id),
-            'type' : issue.fields.issuetype.name,
-            'author' : jiraHistory.author.displayName,
-            'change_at' : Date.parse(jiraHistory.created),
-            'field_name' : jiraItem.field,
-            'from_state' : jiraItem.fromString,
-            'to_state' : jiraItem.toString,
-          }
-
-          output.historyItems.push(history)
+      if (jiraItem.toString == 'Done' || jiraItem.toString == 'In Progress') {
+        console.log("Changelog (" + issue.key + ") " + (jiraItem.fromString || '') + " -> " + (jiraItem.toString || ''))
+        var history = {
+          'issue_id' : parseInt(issue.id),
+          'type' : issue.fields.issuetype.name,
+          'author' : jiraHistory.author.displayName,
+          'change_at' : Date.parse(jiraHistory.created),
+          'field_name' : jiraItem.field,
+          'from_state' : jiraItem.fromString,
+          'to_state' : jiraItem.toString,
         }
+
+        output.historyItems.push(history)
       }
     }
-  }   
+  }
+
+  
 }
 
 //saveToFile(results)
@@ -182,7 +199,8 @@ var tuples = {
   tasks : [],
   clonedStories : [],
   storiesTasks : [],
-  historyItems :[] 
+  historyItems :[],
+  epics : []
 }
 
 for (let i=0; i<res.length; i++) {
@@ -192,8 +210,9 @@ for (let i=0; i<res.length; i++) {
 console.log("Found " + tuples.tasks.length + " Tasks/Bugs")
 console.log("Found " + tuples.stories.length + " Stories")
 console.log("Found " + tuples.clonedStories.length + " cloned Stories")
-console.log("Found " + tuples.storiesTasks.length + " subtasks")
+console.log("Found " + tuples.storiesTasks.length + " Subtasks")
 console.log("Found " + tuples.historyItems.length + " History items")
+console.log("Found " + tuples.epics.length + " Epic items")
 /*
 const row = { 
   epic_id : issue.id,
