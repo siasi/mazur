@@ -316,37 +316,6 @@ function transform(issues) {
   return tuples;
 }
 
-var config = JSON.parse(fs.readFileSync("config.json"))
-console.log(config)
-var fileName = config.project + ".json"
-// 1. List Projects
-//listProjects(config)
-
-// 2.1 Extract issues from Jira
-//var issues = await extract(config)
-
-// 2.2 Save Jira issues to file
-//saveToFile(fileName, issues)
-
-// 2.3 Read Jira issues from file
-var issues = readFromFile(fileName)
-
-// 3. Transform
-var tuples = transform(issues)
-
-// 4. Save to DB
-import knex from 'knex'
-const db = knex({
-  client: 'pg',
-  connection: {
-    host : '127.0.0.1',
-    port : 5432,
-    user : 'postgres',
-    password : 'string123',
-    database : 'postgres'
-  }
-});
-
 function buildCloningHistory(clonedStories) {
   //
   let storyToClonedFrom = clonedStories.map(cloned => ({
@@ -407,6 +376,37 @@ function saveRows(rows, tableName, returningField='id') {
   .then(function(ids) { console.log('Saved ' + ids.length + ' rows in ' + tableName + ' Table') })
   .catch(function(error) { console.log(error) });
 }
+
+var config = JSON.parse(fs.readFileSync("config.json"))
+console.log(config)
+var fileName = config.project + ".json"
+// 1. List Projects
+//listProjects(config)
+
+// 2.1 Extract issues from Jira
+//var issues = await extract(config)
+
+// 2.2 Save Jira issues to file
+//saveToFile(fileName, issues)
+
+// 2.3 Read Jira issues from file
+var issues = readFromFile(fileName)
+
+// 3. Transform
+var tuples = transform(issues)
+
+// 4. Save to DB
+import knex from 'knex'
+const db = knex({
+  client: 'pg',
+  connection: {
+    host : '127.0.0.1',
+    port : 5432,
+    user : 'postgres',
+    password : 'string123',
+    database : 'postgres'
+  }
+});
 
 saveRows(tuples.stories, 'stories');
 saveRows(tuples.tasks, 'tasks');
