@@ -22,16 +22,7 @@ export async function listProjects(config) {
 }
 
 export async function extract(config) {
-  const client = new Version3Client({
-      host: config.JIRA_SERVER,
-      authentication: {
-        basic: {
-          email: config.JIRA_USER,
-          apiToken: config.JIRA_APIKEY,
-        },
-      },
-      newErrorHandling: true,
-    });
+  const client = newJiraClient(config);
 
   var nextStart = 0
   var chunkSize = 100
@@ -55,6 +46,19 @@ export async function extract(config) {
   return results;
 }
 
+function newJiraClient(config) {
+  return new Version3Client({
+    host: config.JIRA_SERVER,
+    authentication: {
+      basic: {
+        email: config.JIRA_USER,
+        apiToken: config.JIRA_APIKEY,
+      },
+    },
+    newErrorHandling: true,
+  });
+}
+
 function saveToFile(filename, results) {
   // stringify JSON Object
   var textContent = JSON.stringify(results, null, 2); 
@@ -76,23 +80,10 @@ function readFromFile(path) {
 function transformIssue(issue, output) {
 
   console.log(issue.fields.issuetype.name + " " + issue.key)
-  if (issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug') {
-    var row = {
-      id : parseInt(issue.id),
-      type : issue.fields.issuetype.name,
-      key : issue.key,
-      project : "CE",
-      created_at : Date.parse(issue.fields.created),
-      creator : issue.fields.creator.displayName,
-      summary : issue.fields.summary,
-    }
-
-    if (issue.fields.resolution) {
-      row.resolution = issue.fields.resolution.name
-      row.resolution_date = Date.parse(issue.fields.resolutiondate)
-    }
-    output.tasks.push(row)
-    console.log(row)
+  if (isATaskOrBug(issue)) {
+    var task = newTask(issue);
+    output.tasks.push(task)
+    //console.log(task)
       
     /*if(len(issue.fields.labels) > 0) {
         for (label in issue.fields.labels) {
@@ -100,136 +91,188 @@ function transformIssue(issue, output) {
         }
     }*/
   }
-  else if (issue.fields.issuetype.name == 'Story') {
-    var row = {
-      id : parseInt(issue.id),
-      //type : issue.fields.issuetype.name,
-      key : issue.key,
-      project : "CE",
-      created_at : Date.parse(issue.fields.created),
-      creator : issue.fields.creator.displayName,
-      summary : issue.fields.summary,
-    }
+  else if (isAStory(issue)) {
+    var story = newStory(issue); 
+    output.stories.push(story)
+    //console.log(story)
 
-    if (issue.fields.resolution) {
-      row.resolution = issue.fields.resolution.name
-      row.resolution_date = Date.parse(issue.fields.resolutiondate)
-    }
-
-    row.story_points = 0
-    if (issue.fields.customfield_10024) {
-      row.story_points = parseInt(issue.fields.customfield_10024)
-    } 
-
-    output.stories.push(row)
-    console.log(row)
-
-    /* Management of cloned stories */
-    if (issue.fields.summary.indexOf("[CONTINUE]") != -1 && issue.fields.issuelinks.length > 0) {
-      for (let i in issue.fields.issuelinks) {
-        var issueLink = issue.fields.issuelinks[i]
-        if (issueLink.outwardIssue) {
-          console.log("Clone " + issue.key + " from " + issueLink.outwardIssue.key)
-
-          var clonedStory = {
-            'issue_id' : parseInt(issue.id),
-            'issue_key' : issue.key,
-            'type' : issueLink.type.name,
-            'cloned_from_issue_id' : parseInt(issueLink.outwardIssue.id),
-            'cloned_from_issue_key' : issueLink.outwardIssue.key,
-            'cloned_from_issue_summary' : issueLink.outwardIssue.fields.summary,
-            'cloned_from_issue_status' : issueLink.outwardIssue.fields.status.name
-          }
-          console.log(clonedStory)
-          output.clonedStories.push(clonedStory);
-        }
-      }
+    if (isAClonedStory(issue)) {
+      extractClonedStoriesData(issue, output);
     }
   } 
   else if (issue.fields.issuetype.name == 'Epic') {
-    console.log("Epic " + issue.key)
-
-    var epic = {
-      'id_epic' : parseInt(issue.id),
-      'issue_key' : issue.key
-    }
-
-    if (issue.fields.customfield_10011) {
-      epic.epic_name = issue.fields.customfield_10011
-    }
-    
-    console.log(epic)
+    var epic = newEpic(issue);
+    //console.log(epic)
     output.epics.push(epic);
   }
 
-  /* Management of Story -> Subtasks relationship */
-  var subTasks = issue.fields.subtasks
-  for (let s in subTasks) {
-    var jiraSubTask = subTasks[s]
-    var subTask = {
-      'story_id' : parseInt(issue.id),
-      'task_id' : parseInt(jiraSubTask.id)
-    }
-    
-    output.storyTasks.push(subTask)
-  }
+  extractSubtasksRelationship(issue, output);
 
-  /* Management of History */
+  extractHistoryData(issue, output);
+
+  if (hasSprintData(issue)) {
+    extractSprintData(issue, output);
+  }         
+}
+
+function isAStory(issue) {
+  return issue.fields.issuetype.name == 'Story'
+}
+
+function isATaskOrBug(issue) {
+  return issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug'
+}
+
+function hasSprintData(issue) {
+  return issue.fields.customfield_10020;
+}
+
+function extractSprintData(issue, output) {
+  for (let s in issue.fields.customfield_10020) {
+    var jiraSprint = issue.fields.customfield_10020[s];
+    var sprint = {
+      'issue_id': parseInt(issue.id),
+      'issue_type': issue.fields.issuetype.name,
+      'issue_key': issue.key,
+      'issue_project': "CE",
+      'issue_sprint_id': parseInt(jiraSprint.id),
+      'issue_sprint_name': jiraSprint.name,
+      'issue_sprint_state': jiraSprint.state
+    };
+
+    if (jiraSprint.goal) {
+      sprint.issue_sprint_goal = jiraSprint.goal;
+    }
+
+    if (jiraSprint.startDate) {
+      sprint.issue_sprint_startDate = Date.parse(jiraSprint.startDate);
+    }
+
+    if (jiraSprint.endDate) {
+      sprint.issue_sprint_endDate = Date.parse(sprint.endDate);
+    }
+
+    if (jiraSprint.completeDate) {
+      sprint.issue_sprint_completeDate = Date.parse(sprint.completeDate);
+    }
+
+    output.sprints.push(sprint);
+  }
+}
+
+function extractHistoryData(issue, output) {
   for (let h in issue.changelog.histories) {
     var jiraHistory = issue.changelog.histories[h];
     for (let i in jiraHistory.items) {
-      var jiraItem = jiraHistory.items[i]
-      
+      var jiraItem = jiraHistory.items[i];
+
       if (jiraItem.toString == 'Done' || jiraItem.toString == 'In Progress') {
         //console.log("Changelog (" + issue.key + ") " + (jiraItem.fromString || '') + " -> " + (jiraItem.toString || ''))
         var history = {
-          'issue_id' : parseInt(issue.id),
-          'type' : issue.fields.issuetype.name,
-          'author' : jiraHistory.author.displayName,
-          'change_at' : Date.parse(jiraHistory.created),
-          'field_name' : jiraItem.field,
-          'from_state' : jiraItem.fromString,
-          'to_state' : jiraItem.toString,
-        }
+          'issue_id': parseInt(issue.id),
+          'type': issue.fields.issuetype.name,
+          'author': jiraHistory.author.displayName,
+          'change_at': Date.parse(jiraHistory.created),
+          'field_name': jiraItem.field,
+          'from_state': jiraItem.fromString,
+          'to_state': jiraItem.toString,
+        };
 
-        output.historyItems.push(history)
+        output.historyItems.push(history);
       }
     }
   }
+}
 
-  /* Management of Sprint */
-  if (issue.fields.customfield_10020) {
-    for (let s in issue.fields.customfield_10020) {
-      var jiraSprint = issue.fields.customfield_10020[s]
-      var sprint = {
-        'issue_id' : parseInt(issue.id),
-        'issue_type' :  issue.fields.issuetype.name,
-        'issue_key' : issue.key,
-        'issue_project' : "CE",
-        'issue_sprint_id' : parseInt(jiraSprint.id),
-        'issue_sprint_name' : jiraSprint.name,
-        'issue_sprint_state' : jiraSprint.state
-      }
+function extractSubtasksRelationship(issue, output) {
+  var subTasks = issue.fields.subtasks;
+  for (let s in subTasks) {
+    var jiraSubTask = subTasks[s];
+    var subTask = {
+      'story_id': parseInt(issue.id),
+      'task_id': parseInt(jiraSubTask.id)
+    };
 
-      if (jiraSprint.goal) {
-        sprint.issue_sprint_goal = jiraSprint.goal
-      }
-      
-      if (jiraSprint.startDate) {
-        sprint.issue_sprint_startDate = Date.parse(jiraSprint.startDate)
-      }
-              
-      if (jiraSprint.endDate) {
-        sprint.issue_sprint_endDate = Date.parse(sprint.endDate)
-      }
+    output.storyTasks.push(subTask);
+  }
+}
 
-      if (jiraSprint.completeDate) {
-        sprint.issue_sprint_completeDate = Date.parse(sprint.completeDate)
-      }
+function newEpic(issue) {
+  var epic = {
+    'id_epic': parseInt(issue.id),
+    'issue_key': issue.key
+  };
 
-      output.sprints.push(sprint)
+  if (issue.fields.customfield_10011) {
+    epic.epic_name = issue.fields.customfield_10011;
+  }
+  return epic;
+}
+
+function extractClonedStoriesData(issue, output) {
+  for (let i in issue.fields.issuelinks) {
+    var issueLink = issue.fields.issuelinks[i];
+    if (issueLink.outwardIssue) {
+      //console.log("Clone " + issue.key + " from " + issueLink.outwardIssue.key)
+      var clonedStory = {
+        'issue_id': parseInt(issue.id),
+        'issue_key': issue.key,
+        'type': issueLink.type.name,
+        'cloned_from_issue_id': parseInt(issueLink.outwardIssue.id),
+        'cloned_from_issue_key': issueLink.outwardIssue.key,
+        'cloned_from_issue_summary': issueLink.outwardIssue.fields.summary,
+        'cloned_from_issue_status': issueLink.outwardIssue.fields.status.name
+      };
+
+      output.clonedStories.push(clonedStory);
+      //console.log(clonedStory)
     }
-  }         
+  }
+}
+
+function isAClonedStory(issue) {
+  return issue.fields.summary.indexOf("[CONTINUE]") != -1 && issue.fields.issuelinks.length > 0;
+}
+
+function newStory(issue) {
+  var story = {
+    id: parseInt(issue.id),
+    //type : issue.fields.issuetype.name,
+    key: issue.key,
+    project: "CE",
+    created_at: Date.parse(issue.fields.created),
+    creator: issue.fields.creator.displayName,
+    summary: issue.fields.summary,
+  };
+
+  if (issue.fields.resolution) {
+    story.resolution = issue.fields.resolution.name;
+    story.resolution_date = Date.parse(issue.fields.resolutiondate);
+  }
+
+  story.story_points = 0;
+  if (issue.fields.customfield_10024) {
+    story.story_points = parseInt(issue.fields.customfield_10024);
+  }
+  return story;
+}
+
+function newTask(issue) {
+  var task = {
+    id: parseInt(issue.id),
+    type: issue.fields.issuetype.name,
+    key: issue.key,
+    project: "CE",
+    created_at: Date.parse(issue.fields.created),
+    creator: issue.fields.creator.displayName,
+    summary: issue.fields.summary,
+  };
+
+  if (issue.fields.resolution) {
+    task.resolution = issue.fields.resolution.name;
+    task.resolution_date = Date.parse(issue.fields.resolutiondate);
+  }
+  return task;
 }
 
 function transform(issues) {
