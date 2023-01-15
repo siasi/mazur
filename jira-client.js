@@ -79,7 +79,7 @@ function transformIssue(issue, output) {
   if (issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug') {
     var row = {
       id : parseInt(issue.id),
-      type : issue.fields.issuetype.name,
+      //type : issue.fields.issuetype.name,
       key : issue.key,
       project : "CE",
       created_at : Date.parse(issue.fields.created),
@@ -103,7 +103,7 @@ function transformIssue(issue, output) {
   else if (issue.fields.issuetype.name == 'Story') {
     var row = {
       id : parseInt(issue.id),
-      type : issue.fields.issuetype.name,
+      //type : issue.fields.issuetype.name,
       key : issue.key,
       project : "CE",
       created_at : Date.parse(issue.fields.created),
@@ -116,9 +116,9 @@ function transformIssue(issue, output) {
       row.resolution_date = Date.parse(issue.fields.resolutiondate)
     }
 
-    row.storyPoints = 0
+    row.story_points = 0
     if (issue.fields.customfield_10024) {
-      row.storyPoints = parseInt(issue.fields.customfield_10024)
+      row.story_points = parseInt(issue.fields.customfield_10024)
     } 
 
     output.stories.push(row)
@@ -276,3 +276,21 @@ var issues = readFromFile(fileName)
 // 3. Transform
 var tuples = transform(issues)
 
+// 4. Save to DB
+import knex from 'knex'
+const db = knex({
+  client: 'pg',
+  connection: {
+    host : '127.0.0.1',
+    port : 5432,
+    user : 'postgres',
+    password : 'string123',
+    database : 'postgres'
+  }
+});
+
+const chunkSize = 1000;
+db.batchInsert('stories', tuples.stories, chunkSize)
+  .returning('id')
+  .then(function(ids) { console.log('Saved ' + ids.length + ' rows in STORIES Table') })
+  .catch(function(error) { console.log(error) });
