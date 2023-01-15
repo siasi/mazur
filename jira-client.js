@@ -317,12 +317,12 @@ function transform(issues) {
 }
 
 function buildCloningHistory(clonedStories) {
-  //
+  
   let storyToClonedFrom = clonedStories.map(cloned => ({
     merged: false,
     cloningHistory: [cloned.issue_id, cloned.cloned_from_issue_id]
   }));
-  console.log(storyToClonedFrom);
+  //console.log(storyToClonedFrom);
   // Contain the list of cloned stories from the last to the first 
   for (const [indexCloned, cloned] of storyToClonedFrom.entries()) {
     let currentClonedStory = cloned.cloningHistory[0];
@@ -342,7 +342,7 @@ function buildCloningHistory(clonedStories) {
       }
     }
   }
-  console.log(storyToClonedFrom);
+  //console.log(storyToClonedFrom);
 
   let cloningFirstLast = storyToClonedFrom
     .filter((x) => !x.merged)
@@ -350,7 +350,7 @@ function buildCloningHistory(clonedStories) {
       first_story_id : x.cloningHistory[x.cloningHistory.length - 1],
       last_story_id : x.cloningHistory[0], 
     }));
-  console.log(cloningFirstLast);
+  //console.log(cloningFirstLast);
   return cloningFirstLast
 }
 
@@ -414,5 +414,6 @@ saveRows(tuples.storyToTasks, 'story_tasks', "story_id");
 saveRows(tuples.historyItems, 'history_items', "issue_id");
 saveRows(tuples.issueToSprints, 'issue_sprints', "issue_id");
 saveRows(tuples.issueToEpic, 'issue_epic', "issue_id");
+saveRows(tuples.clonedStories, 'cloned_stories', "first_story_id");
 
 //STORIES CLONE TO BE DONE

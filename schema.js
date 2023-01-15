@@ -92,4 +92,12 @@ const db = knex({
   })
   .then(() => console.log("Table issue_sprints created"))
 
+  db.schema
+  .dropTableIfExists('cloned_stories')
+  .createTable('cloned_stories', function (table) {
+    table.integer('first_story_id').notNullable()
+    table.integer('last_story_id').notNullable()
+  })
+  .then(() => console.log("Table cloned_stories created"))
+
   
