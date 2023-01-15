@@ -54,7 +54,8 @@ function readFromFile(path) {
   return JSON.parse(fs.readFileSync(path, {encoding:'utf8', flag:'r'})) 
 }
 
-function transform(issue) {
+function transform(issue, clonedStories) {
+
   console.log(issue.fields.issuetype.name + " " + issue.key)
   if (issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug') {
     var row = {
@@ -100,12 +101,30 @@ function transform(issue) {
       row.storyPoints = parseInt(issue.fields.customfield_10024)
     } 
 
-    
-    console.log(row)
-  }
+    /* Management of cloned stories */
+    if (issue.fields.summary.indexOf("[CONTINUE]") != -1 && issue.fields.issuelinks.length > 0) {
+      for (let i in issue.fields.issuelinks) {
+        var issueLink = issue.fields.issuelinks[i]
+        if (issueLink.outwardIssue) {
+          console.log("Clone " + issue.key + " from " + issueLink.outwardIssue.key)
 
-      
-      
+          var clonedStory = {
+            'issue_id' : parseInt(issue.id),
+            'issue_key' : issue.key,
+            'type' : issueLink.type.name,
+            'cloned_from_issue_id' : parseInt(issueLink.outwardIssue.id),
+            'cloned_from_issue_key' : issueLink.outwardIssue.key,
+            'cloned_from_issue_summary' : issueLink.outwardIssue.fields.summary,
+            'cloned_from_issue_status' : issueLink.outwardIssue.fields.status.name
+          }
+          console.log(clonedStory)
+          clonedStories.push(clonedStory);
+        }
+      }
+    }
+  
+    console.log(row)
+  }   
 }
 
 //saveToFile(results)
@@ -120,10 +139,12 @@ console.log(config)
 var res = readFromFile("output.json")
 console.log(res.length)
 console.log(res[2])
-for (let i=0; i<res.length; i++) {
-  transform(res[i])
-}
 
+var clonedStories = []
+for (let i=0; i<res.length; i++) {
+  transform(res[i], clonedStories)
+}
+console.log("Found " + clonedStories.length + " cloned stories")
 /*
 const row = { 
   epic_id : issue.id,
