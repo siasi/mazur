@@ -178,7 +178,39 @@ function transform(issue, output) {
     }
   }
 
-  
+  /* Management of Sprint */
+  if (issue.fields.customfield_10020) {
+    for (let s in issue.fields.customfield_10020) {
+      var jiraSprint = issue.fields.customfield_10020[s]
+      var sprint = {
+        'issue_id' : parseInt(issue.id),
+        'issue_type' :  issue.fields.issuetype.name,
+        'issue_key' : issue.key,
+        'issue_project' : "CE",
+        'issue_sprint_id' : parseInt(jiraSprint.id),
+        'issue_sprint_name' : jiraSprint.name,
+        'issue_sprint_state' : jiraSprint.state
+      }
+
+      if (jiraSprint.goal) {
+        sprint.issue_sprint_goal = jiraSprint.goal
+      }
+      
+      if (jiraSprint.startDate) {
+        sprint.issue_sprint_startDate = Date.parse(jiraSprint.startDate)
+      }
+              
+      if (jiraSprint.endDate) {
+        sprint.issue_sprint_endDate = Date.parse(sprint.endDate)
+      }
+
+      if (jiraSprint.completeDate) {
+        sprint.issue_sprint_completeDate = Date.parse(sprint.completeDate)
+      }
+
+      output.sprints.push(sprint)
+    }
+  }         
 }
 
 //saveToFile(results)
@@ -200,7 +232,8 @@ var tuples = {
   clonedStories : [],
   storiesTasks : [],
   historyItems :[],
-  epics : []
+  epics : [],
+  sprints : []
 }
 
 for (let i=0; i<res.length; i++) {
@@ -213,6 +246,7 @@ console.log("Found " + tuples.clonedStories.length + " cloned Stories")
 console.log("Found " + tuples.storiesTasks.length + " Subtasks")
 console.log("Found " + tuples.historyItems.length + " History items")
 console.log("Found " + tuples.epics.length + " Epic items")
+console.log("Found " + tuples.sprints.length + " Sprint items")
 /*
 const row = { 
   epic_id : issue.id,
