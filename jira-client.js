@@ -2,33 +2,24 @@ import { Version3Client } from 'jira.js';
 // file system module to perform file operations
 import * as fs from 'fs';
 
-async function extract() {
-  const JIRA_SERVER="https://boomimagestudio.atlassian.net"
-
-  //const JIRA_USER="valentin.popov@boom.co"
-  //const JIRA_APIKEY="1becJDCckjD7jOvZ7d8p4BF2"
-  const JIRA_USER="stefano.iasi@boom.co"
-  //const JIRA_APIKEY="nPNPbtRIu4w5lLxi74TE0774"
-  const JIRA_APIKEY="JVsKIBzJuAhCTw7zSc3J6041"
+async function extract(config) {
   const client = new Version3Client({
-      host: JIRA_SERVER,
+      host: config.JIRA_SERVER,
       authentication: {
         basic: {
-          email: JIRA_USER,
-          apiToken: JIRA_APIKEY,
+          email: config.JIRA_USER,
+          apiToken: config.JIRA_APIKEY,
         },
       },
       newErrorHandling: true,
     });
-
-  let projectName =  `"Customer Engagement"`
 
   var nextStart = 0
   var chunkSize = 100
   var results = []
   while (true) {
     const reply = await client.issueSearch.searchForIssuesUsingJql({
-      jql: `project = ${projectName}`,
+      jql: `project = "${config.project}"`,
       startAt: nextStart,
       maxResults: chunkSize,
       expand: ['changelog']
@@ -66,10 +57,13 @@ function readFromFile(path) {
 //saveToFile(results)
 
 
-var data = readFromFile('output.json')
-console.log("There are " + data.length + " Jira items");
+//var data = readFromFile('output.json')
+//console.log("There are " + data.length + " Jira items");
 
-
+var config = JSON.parse(fs.readFileSync("config.json"))
+console.log(config)
+var res = await extract(config)
+console.log(res.length)
 /*function transform(issue) {
   if (issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug') {
     console.log(issue.fields.issuetype.name + " " + issue.key)
