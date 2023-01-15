@@ -54,17 +54,7 @@ function readFromFile(path) {
   return JSON.parse(fs.readFileSync(path, {encoding:'utf8', flag:'r'})) 
 }
 
-//saveToFile(results)
-
-
-//var data = readFromFile('output.json')
-//console.log("There are " + data.length + " Jira items");
-
-var config = JSON.parse(fs.readFileSync("config.json"))
-console.log(config)
-var res = await extract(config)
-console.log(res.length)
-/*function transform(issue) {
+function transform(issue) {
   if (issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug') {
     console.log(issue.fields.issuetype.name + " " + issue.key)
     var row = {
@@ -89,7 +79,18 @@ console.log(res.length)
       df_tasks = pd.concat([df, df_tasks], ignore_index=True)
   }
       
-}*/
+}
+
+//saveToFile(results)
+
+
+//var data = readFromFile('output.json')
+//console.log("There are " + data.length + " Jira items");
+
+var config = JSON.parse(fs.readFileSync("config.json"))
+console.log(config)
+var res = await extract(config)
+console.log(res.length)
 
 /*
 const row = { 
