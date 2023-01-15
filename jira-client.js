@@ -127,7 +127,18 @@ function transform(issue, output) {
       }
     }
   
-    
+    /* Management of Story -> Subtasks relationship */
+    var subTasks = issue.fields.subtasks
+    for (let s in subTasks) {
+      var jiraSubTask = subTasks[s]
+      var subTask = {
+        'story_id' : parseInt(issue.id),
+        'task_id' : parseInt(jiraSubTask.id)
+      }
+      
+      output.storiesTasks.push(subTask)
+    }
+           
   }   
 }
 
@@ -147,7 +158,8 @@ console.log(res[2])
 var tuples = {
   stories : [],
   tasks : [],
-  clonedStories : []
+  clonedStories : [],
+  storiesTasks : []
 }
 
 for (let i=0; i<res.length; i++) {
@@ -157,6 +169,7 @@ for (let i=0; i<res.length; i++) {
 console.log("Found " + tuples.tasks.length + " Tasks/Bugs")
 console.log("Found " + tuples.stories.length + " Stories")
 console.log("Found " + tuples.clonedStories.length + " cloned Stories")
+console.log("Found " + tuples.storiesTasks.length + " subtasks")
 /*
 const row = { 
   epic_id : issue.id,
