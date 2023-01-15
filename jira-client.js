@@ -302,10 +302,12 @@ function transform(issues) {
   for (let i=0; i<issues.length; i++) {
     transformIssue(issues[i], epicIdToName, tuples)
   }
-  
+
+  tuples.clonedStories = buildCloningHistory(tuples.clonedStories);  
+
   console.log("Created " + tuples.tasks.length + " Tasks/Bugs")
   console.log("Created " + tuples.stories.length + " Stories")
-  console.log("Created " + tuples.clonedStories.length + " cloned Stories")
+  console.log("Created " + tuples.clonedStories.length + " Cloned Stories")
   console.log("Created " + tuples.storyToTasks.length + " Subtasks")
   console.log("Created " + tuples.historyItems.length + " History items")
   console.log("Created " + tuples.issueToEpic.length + " Issue to Epic items")
@@ -345,6 +347,44 @@ const db = knex({
   }
 });
 
+function buildCloningHistory(clonedStories) {
+  //
+  let storyToClonedFrom = clonedStories.map(cloned => ({
+    merged: false,
+    cloningHistory: [cloned.issue_id, cloned.cloned_from_issue_id]
+  }));
+  console.log(storyToClonedFrom);
+  // Contain the list of cloned stories from the last to the first 
+  for (const [indexCloned, cloned] of storyToClonedFrom.entries()) {
+    let currentClonedStory = cloned.cloningHistory[0];
+    for (const [indexFrom, from] of storyToClonedFrom.entries()) {
+      if (storyToClonedFrom[indexFrom].merged) {
+        continue;
+      }
+      // If the current cloned story is the "cloned from" another story
+      let currentClonedFrom = from.cloningHistory[from.cloningHistory.length - 1];
+      if (currentClonedStory == currentClonedFrom) {
+        //collapse the two list into one
+        let newSequence = from.cloningHistory.map(identity);
+        newSequence.push(cloned.cloningHistory[cloned.cloningHistory.length - 1]);
+        storiesToDelete.push(currentClonedStory);
+        storyToClonedFrom[indexCloned].cloningHistory = newList;
+        storyToClonedFrom[indexFrom].merged = true;
+      }
+    }
+  }
+  console.log(storyToClonedFrom);
+
+  let cloningFirstLast = storyToClonedFrom
+    .filter((x) => !x.merged)
+    .map((x) => ({ 
+      first_story_id : x.cloningHistory[x.cloningHistory.length - 1],
+      last_story_id : x.cloningHistory[0], 
+    }));
+  console.log(cloningFirstLast);
+  return cloningFirstLast
+}
+
 function buildEpicIdToName(issues){
   var epicIdToName = new Map();
   for (let i = 0; i < issues.length; i++) {
@@ -372,6 +412,7 @@ saveRows(tuples.stories, 'stories');
 saveRows(tuples.tasks, 'tasks');
 saveRows(tuples.storyToTasks, 'story_tasks', "story_id");
 saveRows(tuples.historyItems, 'history_items', "issue_id");
-//STORIES CLONE TO BE DONE
 saveRows(tuples.issueToSprints, 'issue_sprints', "issue_id");
 saveRows(tuples.issueToEpic, 'issue_epic', "issue_id");
+
+//STORIES CLONE TO BE DONE
