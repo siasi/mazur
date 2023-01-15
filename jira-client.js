@@ -301,3 +301,5 @@ saveRows(tuples.stories, 'stories');
 saveRows(tuples.tasks, 'tasks');
 saveRows(tuples.storyTasks, 'story_tasks', "story_id");
 saveRows(tuples.historyItems, 'history_items', "issue_id");
+//STORIES CLONE TO BE DONE
+saveRows(tuples.sprints, 'sprints', "issue_id");

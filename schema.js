@@ -78,3 +78,20 @@ db.schema
     table.string('to_state').notNullable()
   })
   .then(() => console.log("Table history_items created"))
+
+  db.schema
+  .dropTableIfExists('sprints')
+  .createTable('sprints', function (table) {
+    table.integer('issue_id').notNullable()
+    table.string('issue_type').notNullable()
+    table.string('issue_key').notNullable()
+    table.string('issue_project').notNullable()
+    table.integer('issue_sprint_id')
+    table.string('issue_sprint_name')
+    table.string('issue_sprint_state')
+    table.string('issue_sprint_goal')
+    table.string('issue_sprint_startDate')
+    table.string('issue_sprint_endDate')
+    table.string('issue_sprint_completeDate')
+  })
+  .then(() => console.log("Table sprints created"))
