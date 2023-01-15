@@ -1,12 +1,14 @@
 import { Version3Client } from 'jira.js';
+// file system module to perform file operations
+import * as fs from 'fs';
 
 const JIRA_SERVER="https://boomimagestudio.atlassian.net"
 
 //const JIRA_USER="valentin.popov@boom.co"
 //const JIRA_APIKEY="1becJDCckjD7jOvZ7d8p4BF2"
 const JIRA_USER="stefano.iasi@boom.co"
-const JIRA_APIKEY="nPNPbtRIu4w5lLxi74TE0774"
-
+//const JIRA_APIKEY="nPNPbtRIu4w5lLxi74TE0774"
+const JIRA_APIKEY="JVsKIBzJuAhCTw7zSc3J6041"
 const client = new Version3Client({
     host: JIRA_SERVER,
     authentication: {
@@ -30,7 +32,7 @@ while (true) {
     maxResults: chunkSize,
     expand: ['changelog']
   });
-  results.concat(reply.issues)
+  results = results.concat(reply.issues)
   console.log("Got " + reply.issues.length + " items")
   if (reply.issues.length < chunkSize) {
     break
@@ -39,6 +41,18 @@ while (true) {
 }
 
 console.log("TOTAL = " + results.length)
+
+// stringify JSON Object
+var textContent = JSON.stringify(results, null, 2); 
+ 
+fs.writeFile("output.json", textContent, 'utf8', function (err) {
+    if (err) {
+        console.log("An error occured while writing JSON Object to File.");
+        return console.log(err);
+    }
+ 
+    console.log("JSON file has been saved.");
+});
 /*
 const row = { 
   epic_id : issue.id,
