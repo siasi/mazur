@@ -24,9 +24,9 @@ export async function listProjects(config) {
 export async function extract(config) {
   const client = newJiraClient(config);
 
-  var nextStart = 0
-  var chunkSize = 100
-  var results = []
+  let nextStart = 0
+  let chunkSize = 100
+  let results = []
   while (true) {
     const reply = await client.issueSearch.searchForIssuesUsingJql({
       jql: `project = "${config.project}"`,
@@ -61,7 +61,7 @@ function newJiraClient(config) {
 
 function saveToFile(filename, results) {
   // stringify JSON Object
-  var textContent = JSON.stringify(results, null, 2); 
+  let textContent = JSON.stringify(results, null, 2); 
   
   fs.writeFile(filename, textContent, 'utf8', function (err) {
       if (err) {
@@ -81,7 +81,7 @@ function transformIssue(issue, epicIdToName, output) {
 
   //console.log(issue.fields.issuetype.name + " " + issue.key)
   if (isATaskOrBug(issue)) {
-    var task = newTask(issue);
+    let task = newTask(issue);
     output.tasks.push(task)
     //console.log(task)
       
@@ -92,7 +92,7 @@ function transformIssue(issue, epicIdToName, output) {
     }*/
   }
   else if (isAStory(issue)) {
-    var story = newStory(issue); 
+    let story = newStory(issue); 
     output.stories.push(story)
     //console.log(story)
 
@@ -126,14 +126,14 @@ function hasSprintData(issue) {
 
 function transformSprintData(issue, output) {
   for (let s in issue.fields.customfield_10020) {
-    var jiraSprint = issue.fields.customfield_10020[s];
-    var sprint = newIssueToSprint(issue, jiraSprint);
+    let jiraSprint = issue.fields.customfield_10020[s];
+    let sprint = newIssueToSprint(issue, jiraSprint);
     output.issueToSprints.push(sprint);
   }
 }
 
 function newIssueToSprint(issue, jiraSprint) {
-  var issueToSprint = {
+  let issueToSprint = {
     'issue_id': parseInt(issue.id),
     'issue_type': issue.fields.issuetype.name,
     'issue_key': issue.key,
@@ -164,12 +164,12 @@ function newIssueToSprint(issue, jiraSprint) {
 function transformIssueToEpic(issue, epicIdToName, output) {
   
   if (issue.fields.parent) {
-    var parent = issue.fields.parent
+    let parent = issue.fields.parent
     //console.log("Epic found: " + JSON.stringify(parent, null, 2))
     if (parent.fields.issuetype.name == "Epic") {
       
-      var parentId = parseInt(parent.id)
-      var issueToEpic = {
+      let parentId = parseInt(parent.id)
+      let issueToEpic = {
         issue_id : parseInt(issue.id),
         issue_key : issue.key,
         epic_id : parentId,
@@ -185,13 +185,13 @@ function transformIssueToEpic(issue, epicIdToName, output) {
 
 function transformHistoryData(issue, output) {
   for (let h in issue.changelog.histories) {
-    var jiraHistory = issue.changelog.histories[h];
+    let jiraHistory = issue.changelog.histories[h];
     for (let i in jiraHistory.items) {
-      var jiraItem = jiraHistory.items[i];
+      let jiraItem = jiraHistory.items[i];
 
       if (jiraItem.toString == 'Done' || jiraItem.toString == 'In Progress') {
         //console.log("Changelog (" + issue.key + ") " + (jiraItem.fromString || '') + " -> " + (jiraItem.toString || ''))
-        var history = {
+        let history = {
           'issue_id': parseInt(issue.id),
           'type': issue.fields.issuetype.name,
           'author': jiraHistory.author.displayName,
@@ -208,10 +208,10 @@ function transformHistoryData(issue, output) {
 }
 
 function transformSubtasksRelationship(issue, output) {
-  var subTasks = issue.fields.subtasks;
+  let subTasks = issue.fields.subtasks;
   for (let s in subTasks) {
-    var jiraSubTask = subTasks[s];
-    var storyToTask = {
+    let jiraSubTask = subTasks[s];
+    let storyToTask = {
       'story_id': parseInt(issue.id),
       'task_id': parseInt(jiraSubTask.id)
     };
@@ -222,10 +222,10 @@ function transformSubtasksRelationship(issue, output) {
 
 function transformClonedStoriesData(issue, output) {
   for (let i in issue.fields.issuelinks) {
-    var issueLink = issue.fields.issuelinks[i];
+    let issueLink = issue.fields.issuelinks[i];
     if (issueLink.outwardIssue) {
       //console.log("Clone " + issue.key + " from " + issueLink.outwardIssue.key)
-      var clonedStory = {
+      let clonedStory = {
         'issue_id': parseInt(issue.id),
         'issue_key': issue.key,
         'type': issueLink.type.name,
@@ -246,7 +246,7 @@ function isAClonedStory(issue) {
 }
 
 function newStory(issue) {
-  var story = {
+  let story = {
     id: parseInt(issue.id),
     //type : issue.fields.issuetype.name,
     key: issue.key,
@@ -269,7 +269,7 @@ function newStory(issue) {
 }
 
 function newTask(issue) {
-  var task = {
+  let task = {
     id: parseInt(issue.id),
     type: issue.fields.issuetype.name,
     key: issue.key,
@@ -287,7 +287,7 @@ function newTask(issue) {
 }
 
 function transform(issues) {
-  var tuples = {
+  let tuples = {
     stories : [],
     tasks : [],
     historyItems :[],
@@ -297,7 +297,7 @@ function transform(issues) {
     issueToSprints : []
   }
 
-  var epicIdToName = buildEpicIdToName(issues);
+  let epicIdToName = buildEpicIdToName(issues);
 
   for (let i=0; i<issues.length; i++) {
     transformIssue(issues[i], epicIdToName, tuples)
@@ -355,9 +355,9 @@ function buildCloningHistory(clonedStories) {
 }
 
 function buildEpicIdToName(issues){
-  var epicIdToName = new Map();
+  let epicIdToName = new Map();
   for (let i = 0; i < issues.length; i++) {
-    var issue = issues[i];
+    let issue = issues[i];
     if (issue.fields.issuetype.name == 'Epic') {
       if (issue.fields.customfield_10011) {
         epicIdToName.set(parseInt(issue.id), issue.fields.customfield_10011);
@@ -377,23 +377,23 @@ function saveRows(rows, tableName, returningField='id') {
   .catch(function(error) { console.log(error) });
 }
 
-var config = JSON.parse(fs.readFileSync("config.json"))
+let config = JSON.parse(fs.readFileSync("config.json"))
 console.log(config)
-var fileName = config.project + ".json"
+let fileName = config.project + ".json"
 // 1. List Projects
 //listProjects(config)
 
 // 2.1 Extract issues from Jira
-//var issues = await extract(config)
+//let issues = await extract(config)
 
 // 2.2 Save Jira issues to file
 //saveToFile(fileName, issues)
 
 // 2.3 Read Jira issues from file
-var issues = readFromFile(fileName)
+let issues = readFromFile(fileName)
 
 // 3. Transform
-var tuples = transform(issues)
+let tuples = transform(issues)
 
 // 4. Save to DB
 import knex from 'knex'
