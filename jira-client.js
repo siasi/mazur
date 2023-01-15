@@ -79,7 +79,7 @@ function transformIssue(issue, output) {
   if (issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug') {
     var row = {
       id : parseInt(issue.id),
-      //type : issue.fields.issuetype.name,
+      type : issue.fields.issuetype.name,
       key : issue.key,
       project : "CE",
       created_at : Date.parse(issue.fields.created),
@@ -181,7 +181,7 @@ function transformIssue(issue, output) {
       var jiraItem = jiraHistory.items[i]
       
       if (jiraItem.toString == 'Done' || jiraItem.toString == 'In Progress') {
-        console.log("Changelog (" + issue.key + ") " + (jiraItem.fromString || '') + " -> " + (jiraItem.toString || ''))
+        //console.log("Changelog (" + issue.key + ") " + (jiraItem.fromString || '') + " -> " + (jiraItem.toString || ''))
         var history = {
           'issue_id' : parseInt(issue.id),
           'type' : issue.fields.issuetype.name,
@@ -298,3 +298,4 @@ function saveRows(rows, tableName) {
 }
 
 saveRows(tuples.stories, 'stories');
+saveRows(tuples.tasks, 'tasks');

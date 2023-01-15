@@ -24,8 +24,7 @@ db.schema
     table.string('epic_name')
     table.timestamps(true, true)
   })
-  .then(() => console.log("Table Epics created"))
-
+  .then(() => console.log("Table epics created"))
 
   db.schema
   .dropTableIfExists('stories')
@@ -41,4 +40,20 @@ db.schema
     table.integer('story_points')
     //table.timestamps(true, true)
   })
-  .then(() => console.log("Table Stories created"))
+  .then(() => console.log("Table stories created"))
+  
+  db.schema
+  .dropTableIfExists('tasks')
+  .createTable('tasks', function (table) {
+    table.integer('id').notNullable()
+    table.string('type').notNullable()
+    table.string('key').notNullable()
+    table.string('project').notNullable()
+    table.string('created_at').notNullable()
+    table.string('creator')
+    table.string('summary')
+    table.string('label')
+    table.string('resolution')
+    table.string('resolution_date')
+  })
+  .then(() => console.log("Table tasks created"))
