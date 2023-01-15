@@ -55,29 +55,56 @@ function readFromFile(path) {
 }
 
 function transform(issue) {
+  console.log(issue.fields.issuetype.name + " " + issue.key)
   if (issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug') {
-    console.log(issue.fields.issuetype.name + " " + issue.key)
     var row = {
-      id : int(issue.id),
+      id : parseInt(issue.id),
       type : issue.fields.issuetype.name,
       key : issue.key,
-      project : project.key,
-      created_at : issue.fields.created,
+      project : "CE",
+      created_at : Date.parse(issue.fields.created),
       creator : issue.fields.creator.displayName,
       summary : issue.fields.summary,
     }
+
+    if (issue.fields.resolution) {
+      row.resolution = issue.fields.resolution.name
+      row.resolution_date = Date.parse(issue.fields.resolutiondate)
+    }
+    console.log(row)
       
-      if(len(issue.fields.labels)>0):
-          for label in issue.fields.labels:
-              new_dict['label'] = label
-
-      if (issue.fields.resolution is not None):
-          new_dict['resolution'] = issue.fields.resolution.name
-          new_dict['resolution_date'] = parser.parse(issue.fields.resolutiondate)
-
-      df = pd.DataFrame([new_dict])
-      df_tasks = pd.concat([df, df_tasks], ignore_index=True)
+    /*if(len(issue.fields.labels) > 0) {
+        for (label in issue.fields.labels) {
+            new_dict['label'] = label
+        }
+    }*/
   }
+  else if (issue.fields.issuetype.name == 'Story') {
+    var row = {
+      id : parseInt(issue.id),
+      type : issue.fields.issuetype.name,
+      key : issue.key,
+      project : "CE",
+      created_at : Date.parse(issue.fields.created),
+      creator : issue.fields.creator.displayName,
+      summary : issue.fields.summary,
+    }
+
+    if (issue.fields.resolution) {
+      row.resolution = issue.fields.resolution.name
+      row.resolution_date = Date.parse(issue.fields.resolutiondate)
+    }
+
+    row.storyPoints = 0
+    if (issue.fields.customfield_10024) {
+      row.storyPoints = parseInt(issue.fields.customfield_10024)
+    } 
+
+    
+    console.log(row)
+  }
+
+      
       
 }
 
@@ -89,8 +116,13 @@ function transform(issue) {
 
 var config = JSON.parse(fs.readFileSync("config.json"))
 console.log(config)
-var res = await extract(config)
+//var res = await extract(config)
+var res = readFromFile("output.json")
 console.log(res.length)
+console.log(res[2])
+for (let i=0; i<res.length; i++) {
+  transform(res[i])
+}
 
 /*
 const row = { 
