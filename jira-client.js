@@ -171,7 +171,7 @@ function transformIssue(issue, output) {
       'task_id' : parseInt(jiraSubTask.id)
     }
     
-    output.storiesTasks.push(subTask)
+    output.storyTasks.push(subTask)
   }
 
   /* Management of History */
@@ -237,7 +237,7 @@ function transform(issues) {
     stories : [],
     tasks : [],
     clonedStories : [],
-    storiesTasks : [],
+    storyTasks : [],
     historyItems :[],
     epics : [],
     sprints : []
@@ -250,7 +250,7 @@ function transform(issues) {
   console.log("Found " + tuples.tasks.length + " Tasks/Bugs")
   console.log("Found " + tuples.stories.length + " Stories")
   console.log("Found " + tuples.clonedStories.length + " cloned Stories")
-  console.log("Found " + tuples.storiesTasks.length + " Subtasks")
+  console.log("Found " + tuples.storyTasks.length + " Subtasks")
   console.log("Found " + tuples.historyItems.length + " History items")
   console.log("Found " + tuples.epics.length + " Epic items")
   console.log("Found " + tuples.sprints.length + " Sprint items")
@@ -289,13 +289,15 @@ const db = knex({
   }
 });
 
-function saveRows(rows, tableName) {
+function saveRows(rows, tableName, returningField='id') {
   const chunkSize = 1000;
   db.batchInsert(tableName, rows, chunkSize)
-  .returning('id')
+  .returning(returningField)
   .then(function(ids) { console.log('Saved ' + ids.length + ' rows in ' + tableName + ' Table') })
   .catch(function(error) { console.log(error) });
 }
 
 saveRows(tuples.stories, 'stories');
 saveRows(tuples.tasks, 'tasks');
+saveRows(tuples.storyTasks, 'story_tasks', "story_id");
+saveRows(tuples.historyItems, 'history_items', "issue_id");

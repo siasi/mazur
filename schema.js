@@ -57,3 +57,24 @@ db.schema
     table.string('resolution_date')
   })
   .then(() => console.log("Table tasks created"))
+
+  db.schema
+  .dropTableIfExists('story_tasks')
+  .createTable('story_tasks', function (table) {
+    table.integer('story_id').notNullable()
+    table.string('task_id').notNullable()
+  })
+  .then(() => console.log("Table story_tasks created"))
+
+  db.schema
+  .dropTableIfExists('history_items')
+  .createTable('history_items', function (table) {
+    table.integer('issue_id').notNullable()
+    table.string('type').notNullable()
+    table.string('author').notNullable()
+    table.string('change_at').notNullable()
+    table.string('field_name').notNullable()
+    table.string('from_state')
+    table.string('to_state').notNullable()
+  })
+  .then(() => console.log("Table history_items created"))
