@@ -54,7 +54,7 @@ function readFromFile(path) {
   return JSON.parse(fs.readFileSync(path, {encoding:'utf8', flag:'r'})) 
 }
 
-function transform(issue, clonedStories) {
+function transform(issue, output) {
 
   console.log(issue.fields.issuetype.name + " " + issue.key)
   if (issue.fields.issuetype.name == 'Task' || issue.fields.issuetype.name == 'Bug') {
@@ -72,6 +72,7 @@ function transform(issue, clonedStories) {
       row.resolution = issue.fields.resolution.name
       row.resolution_date = Date.parse(issue.fields.resolutiondate)
     }
+    output.tasks.push(row)
     console.log(row)
       
     /*if(len(issue.fields.labels) > 0) {
@@ -101,6 +102,9 @@ function transform(issue, clonedStories) {
       row.storyPoints = parseInt(issue.fields.customfield_10024)
     } 
 
+    output.stories.push(row)
+    console.log(row)
+
     /* Management of cloned stories */
     if (issue.fields.summary.indexOf("[CONTINUE]") != -1 && issue.fields.issuelinks.length > 0) {
       for (let i in issue.fields.issuelinks) {
@@ -118,12 +122,12 @@ function transform(issue, clonedStories) {
             'cloned_from_issue_status' : issueLink.outwardIssue.fields.status.name
           }
           console.log(clonedStory)
-          clonedStories.push(clonedStory);
+          output.clonedStories.push(clonedStory);
         }
       }
     }
   
-    console.log(row)
+    
   }   
 }
 
@@ -140,11 +144,19 @@ var res = readFromFile("output.json")
 console.log(res.length)
 console.log(res[2])
 
-var clonedStories = []
-for (let i=0; i<res.length; i++) {
-  transform(res[i], clonedStories)
+var tuples = {
+  stories : [],
+  tasks : [],
+  clonedStories : []
 }
-console.log("Found " + clonedStories.length + " cloned stories")
+
+for (let i=0; i<res.length; i++) {
+  transform(res[i], tuples)
+}
+
+console.log("Found " + tuples.tasks.length + " Tasks/Bugs")
+console.log("Found " + tuples.stories.length + " Stories")
+console.log("Found " + tuples.clonedStories.length + " cloned Stories")
 /*
 const row = { 
   epic_id : issue.id,
