@@ -30,7 +30,7 @@ while (true) {
     maxResults: chunkSize,
     expand: ['changelog']
   });
-  results.push(reply.issues)
+  results.concat(reply.issues)
   console.log("Got " + reply.issues.length + " items")
   if (reply.issues.length < chunkSize) {
     break
