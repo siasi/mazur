@@ -238,6 +238,7 @@ function buildCloningHistory(clonedStories) {
     cloningHistory: [cloned.issue_id, cloned.cloned_from_issue_id]
   }));
   //console.log(storyToClonedFrom);
+  let storiesToDelete = []
   // Contain the list of cloned stories from the last to the first 
   for (const [indexCloned, cloned] of storyToClonedFrom.entries()) {
     let currentClonedStory = cloned.cloningHistory[0];
@@ -249,10 +250,10 @@ function buildCloningHistory(clonedStories) {
       let currentClonedFrom = from.cloningHistory[from.cloningHistory.length - 1];
       if (currentClonedStory == currentClonedFrom) {
         //collapse the two list into one
-        let newSequence = from.cloningHistory.map(identity);
+        let newSequence = [...from.cloningHistory];
         newSequence.push(cloned.cloningHistory[cloned.cloningHistory.length - 1]);
         storiesToDelete.push(currentClonedStory);
-        storyToClonedFrom[indexCloned].cloningHistory = newList;
+        storyToClonedFrom[indexCloned].cloningHistory = newSequence;
         storyToClonedFrom[indexFrom].merged = true;
       }
     }
