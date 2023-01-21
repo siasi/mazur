@@ -78,14 +78,14 @@ function readFromFile(path) {
   return JSON.parse(fs.readFileSync(path, {encoding:'utf8', flag:'r'})) 
 }
 
-
-
-function saveRows(rows, tableName, returningField='id') {
+async function saveRows(rows, tableName, returningField='id') {
   const chunkSize = 1000;
-  db.batchInsert(tableName, rows, chunkSize)
-  .returning(returningField)
-  .then(function(ids) { console.log('Saved ' + ids.length + ' rows in ' + tableName + ' Table') })
-  .catch(function(error) { console.log(error) });
+  try {
+    const ids = await db.batchInsert(tableName, rows, chunkSize).returning(returningField)
+    console.log('Saved ' + ids.length + ' rows in ' + tableName + ' Table')
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 let config = JSON.parse(fs.readFileSync("config.json"))
@@ -118,13 +118,15 @@ const db = knex({
     database : 'postgres'
   }
 });
+Promise.all([
+  saveRows(tuples.stories, 'stories'),
+  saveRows(tuples.tasks, 'tasks'),
+  saveRows(tuples.storyToTasks, 'story_tasks', "story_id"),
+  saveRows(tuples.historyItems, 'history_items', "issue_id"),
+  saveRows(tuples.issueToSprints, 'issue_sprints', "issue_id"),
+  saveRows(tuples.issueToEpic, 'issue_epic', "issue_id"),
+  saveRows(tuples.clonedStories, 'cloned_stories', "first_story_id")]
+  ).then(() => db.destroy())
 
-saveRows(tuples.stories, 'stories');
-saveRows(tuples.tasks, 'tasks');
-saveRows(tuples.storyToTasks, 'story_tasks', "story_id");
-saveRows(tuples.historyItems, 'history_items', "issue_id");
-saveRows(tuples.issueToSprints, 'issue_sprints', "issue_id");
-saveRows(tuples.issueToEpic, 'issue_epic', "issue_id");
-saveRows(tuples.clonedStories, 'cloned_stories', "first_story_id");
 
 //STORIES CLONE TO BE DONE
