@@ -1,4 +1,4 @@
-import { Version3Client } from 'jira.js';
+import { Version3Client } from 'jira.js'
 
 export async function listProjects(config) {
   const client = new Version3Client({
@@ -15,13 +15,13 @@ export async function listProjects(config) {
   const projects = await client.projects.getAllProjects()
 
   if (projects.length) {
-     console.log("Got " + projects.length + " projects:")
-     projects.forEach((project) => console.log(project.name))
+    console.log('Got ' + projects.length + ' projects:')
+    projects.forEach((project) => console.log(project.name))
   }
 }
 
 export async function extract(config) {
-  const client = newJiraClient(config);
+  const client = newJiraClient(config)
 
   let nextStart = 0
   let chunkSize = 100
@@ -32,15 +32,15 @@ export async function extract(config) {
       jql: `project = "${config.project}"`,
       startAt: nextStart,
       maxResults: chunkSize,
-      expand: ['changelog']
-    });
+      expand: ['changelog'],
+    })
     results = results.concat(reply.issues)
-    console.log("Got " + reply.issues.length + " items")
+    console.log('Got ' + reply.issues.length + ' items')
     nextStart += chunkSize
   } while (reply.issues.length < chunkSize)
 
-  console.log("TOTAL = " + results.length)
-  return results;
+  console.log('TOTAL = ' + results.length)
+  return results
 }
 
 function newJiraClient(config) {
@@ -53,10 +53,7 @@ function newJiraClient(config) {
       },
     },
     newErrorHandling: true,
-  });
+  })
 }
-
-
-
 
 //STORIES CLONE TO BE DONE
