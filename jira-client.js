@@ -1,5 +1,6 @@
 import { Version3Client } from 'jira.js'
 
+// Print the list of projects for the Jira account
 export async function listProjects(config) {
   const client = new Version3Client({
     host: config.JIRA_SERVER,
@@ -20,6 +21,7 @@ export async function listProjects(config) {
   }
 }
 
+// Return all the issues for the project passed in the config
 export async function extract(config) {
   const client = newJiraClient(config)
 
@@ -55,5 +57,3 @@ function newJiraClient(config) {
     newErrorHandling: true,
   })
 }
-
-//STORIES CLONE TO BE DONE
