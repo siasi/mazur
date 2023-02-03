@@ -1,6 +1,6 @@
 {
-  "JIRA_SERVER" : "https://yourdomain.atlassian.net",
-  "JIRA_USER" : "Your Jira user email",
-  "JIRA_APIKEY" : "Your Jira API Key",
-  "project" : "Your project name"
+  "JIRA_SERVER" : "https://boomimagestudio.atlassian.net",
+  "JIRA_USER" : "stefano.iasi@boom.co",
+  "JIRA_APIKEY" : "JVsKIBzJuAhCTw7zSc3J6041",
+  "project" : "Customer Engagement"
 }

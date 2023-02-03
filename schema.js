@@ -1,16 +1,27 @@
 import knex from 'knex'
-const db = knex({
-    client: 'pg',
-    connection: {
-      host : '127.0.0.1',
-      port : 5432,
-      user : 'postgres',
-      password : 'string123',
-      database : 'postgres'
-    }
-  });
+/*export const db = knex({
+  client: 'pg',
+  connection: {
+    host : '127.0.0.1',
+    port : 5432,
+    user : 'postgres',
+    password : 'string123',
+    database : 'postgres'
+  }
+});*/
 
-  db.schema
+export const db = knex({
+  client: 'mysql',
+  connection: {
+    host: '127.0.0.1',
+    port: 3306,
+    user: 'root',
+    password: 'string123',
+    database: 'mysql',
+  },
+})
+
+db.schema
   .dropTableIfExists('stories')
   .createTable('stories', function (table) {
     table.integer('id').notNullable()
@@ -24,9 +35,9 @@ const db = knex({
     table.integer('story_points')
     //table.timestamps(true, true)
   })
-  .then(() => console.log("Table stories created"))
-  
-  db.schema
+  .then(() => console.log('Table stories created'))
+
+db.schema
   .dropTableIfExists('tasks')
   .createTable('tasks', function (table) {
     table.integer('id').notNullable()
@@ -38,11 +49,11 @@ const db = knex({
     table.string('summary')
     table.string('label')
     table.string('resolution')
-    table.string('resolution_date')
+    table.dateTime('resolution_date')
   })
-  .then(() => console.log("Table tasks created"))
+  .then(() => console.log('Table tasks created'))
 
-  db.schema
+db.schema
   .dropTableIfExists('history_items')
   .createTable('history_items', function (table) {
     table.integer('issue_id').notNullable()
@@ -53,17 +64,17 @@ const db = knex({
     table.string('from_state')
     table.string('to_state').notNullable()
   })
-  .then(() => console.log("Table history_items created"))
+  .then(() => console.log('Table history_items created'))
 
-  db.schema
+db.schema
   .dropTableIfExists('story_tasks')
   .createTable('story_tasks', function (table) {
     table.integer('story_id').notNullable()
     table.string('task_id').notNullable()
   })
-  .then(() => console.log("Table story_tasks created"))
+  .then(() => console.log('Table story_tasks created'))
 
-  db.schema
+db.schema
   .dropTableIfExists('issue_epic')
   .createTable('issue_epic', function (table) {
     table.integer('issue_id').notNullable()
@@ -73,9 +84,9 @@ const db = knex({
     table.string('epic_name')
     table.string('epic_summary')
   })
-  .then(() => console.log("Table issue_epic created"))
+  .then(() => console.log('Table issue_epic created'))
 
-  db.schema
+db.schema
   .dropTableIfExists('issue_sprints')
   .createTable('issue_sprints', function (table) {
     table.integer('issue_id').notNullable()
@@ -90,14 +101,12 @@ const db = knex({
     table.string('sprint_endDate')
     table.string('sprint_completeDate')
   })
-  .then(() => console.log("Table issue_sprints created"))
+  .then(() => console.log('Table issue_sprints created'))
 
-  db.schema
+db.schema
   .dropTableIfExists('cloned_stories')
   .createTable('cloned_stories', function (table) {
     table.integer('first_story_id').notNullable()
     table.integer('last_story_id').notNullable()
   })
-  .then(() => console.log("Table cloned_stories created"))
-
-  
+  .then(() => console.log('Table cloned_stories created'))

@@ -1,10 +1,10 @@
 import { transform } from './extract.js'
 import { readFromFile, saveRows, db } from './persistency.js'
-import * as fs from 'fs';
+import * as fs from 'fs'
 
-let config = JSON.parse(fs.readFileSync("config.json"))
+let config = JSON.parse(fs.readFileSync('config.json'))
 console.log(config)
-let fileName = config.project + ".json"
+let fileName = config.project + '.json'
 // 1. List Projects
 //listProjects(config)
 
@@ -23,16 +23,14 @@ let tuples = transform(issues)
 // 4. Save to DB
 
 Promise.all([
-  saveRows(tuples.stories, 'stories'),
+  //saveRows(tuples.stories, 'stories'),
   saveRows(tuples.tasks, 'tasks'),
-  saveRows(tuples.storyToTasks, 'story_tasks', "story_id"),
-  saveRows(tuples.historyItems, 'history_items', "issue_id"),
-  saveRows(tuples.issueToSprints, 'issue_sprints', "issue_id"),
-  saveRows(tuples.issueToEpic, 'issue_epic', "issue_id"),
-  saveRows(tuples.clonedStories, 'cloned_stories', "first_story_id")]
-  ).then(() => db.destroy())
-
-
+  saveRows(tuples.storyToTasks, 'story_tasks', 'story_id'),
+  saveRows(tuples.historyItems, 'history_items', 'issue_id'),
+  //saveRows(tuples.issueToSprints, 'issue_sprints', "issue_id"),
+  saveRows(tuples.issueToEpic, 'issue_epic', 'issue_id'),
+  saveRows(tuples.clonedStories, 'cloned_stories', 'first_story_id'),
+]).then(() => db.destroy())
 
 // TO BE MOVED
 //#! /usr/bin/env node
@@ -53,16 +51,13 @@ program.parse()*/
 
 //saveToFile(results)
 
-
 //var data = readFromFile('output.json')
 //console.log("There are " + data.length + " Jira items");
-
 
 //var res = await extract(config)
 /*var res = readFromFile("output.json")
 console.log(res.length)
 console.log(res[2])*/
-
 
 /*
 const row = { 
