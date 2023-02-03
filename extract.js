@@ -198,7 +198,7 @@ function newStory(issue) {
     //type : issue.fields.issuetype.name,
     key: issue.key,
     project: 'CE',
-    created_at: Date.parse(issue.fields.created),
+    created_at: new Date(issue.fields.created),
     creator: issue.fields.creator.displayName,
     summary: issue.fields.summary,
   }
@@ -228,7 +228,6 @@ function newTask(issue) {
 
   if (issue.fields.resolution) {
     task.resolution = issue.fields.resolution.name
-    //task.resolution_date = Date.parse(issue.fields.resolutiondate);
     task.resolution_date = new Date(issue.fields.resolutiondate)
   }
   return task
